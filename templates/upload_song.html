@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+{% block title %}MyLink Upload Page{% endblock %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+{% block body %}
+
+
+
+<div class="container" id="body">
+     <form name="upload" ACTION="/upload_song" METHOD="POST" enctype=multipart/form-data>
+            <input type="hidden" name="action" value="upload-pic-data">
+
+            <label for="album_select">Select File: </label>
+            <div class="file-field input-field">
+                <input class="file-path validate" type="text" style="width: 70%"/>
+                <div class="btn">
+                    <span>File</span>
+                    <input type="file" name="file"/>
+                </div>
+            </div>
+            <br>
+            <label for="album_select">Select Song: </label>
+
+            <br>
+            <button type="submit" class="btn btn-primary">Upload Song</button>
+        </form>
+</div>
+
+{% endblock %}
