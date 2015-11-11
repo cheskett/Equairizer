@@ -1,6 +1,5 @@
-from flask import Flask, render_template, g, request, redirect, url_for, flash
+from flask import Flask, render_template, g, request, redirect, url_for, flash, app
 from UploadHandler import UploadHandler
-from werkzeug import secure_filename
 import sqlite3
 import os
 
@@ -48,10 +47,7 @@ def uploaded_file(filename):
 def upload_song():
     media_file = request.files['file']
     if media_file and uh.allowed_file(media_file.filename):
-        filename = secure_filename(media_file.filename)
-        media_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        return redirect(url_for('uploaded_file',
-                                filename=filename))
+        return uh.upload_file(media_file)
     else:
         flash("Unsupported File Format")
         return redirect(url_for('load_upload_page'))
@@ -63,4 +59,4 @@ def load_upload_page():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='127.0.0.1', port=5000, debug=True)
