@@ -31,11 +31,11 @@ class AudioParser:
         else:
             self.num_bands = num_bands
         self.fft_averages = []
-        self.stream = p.open(format =
-                p.get_format_from_width(self.wave_file.getsampwidth()),
-                channels = self.wave_file.getnchannels(),
-                rate = self.wave_file.getframerate(),
-                output = True)
+        self.stream = p.open(format=
+                             p.get_format_from_width(self.wave_file.getsampwidth()),
+                             channels=self.wave_file.getnchannels(),
+                             rate=self.wave_file.getframerate(),
+                             output=True)
 
         #Calculate FFT informatuon
         self.fouriers_per_second = 44.1/2 # Frames per second
@@ -52,7 +52,6 @@ class AudioParser:
         self.total_transforms = int(round(self.length_to_process * self.fouriers_per_second))
         self.fourier_spacing = round(self.fourier_spread * float(self.sample_rate))
 
-
     def getBandWidth(self):
         return (2.0/self.sample_size) * (self.sample_rate / 2.0)
 
@@ -65,7 +64,6 @@ class AudioParser:
         fraction = float(f) / float(self.sample_rate)
         index = round(self.sample_size * fraction)
         return index
-
 
     def average_fft_bands(self, fft_array):
         del self.fft_averages[:]
@@ -109,7 +107,6 @@ class AudioParser:
             output = output + " " + str(int(num))
         lock.release()
         print output
-
 
     def begin(self):
         print "Sample rate: %s" % self.sample_rate
