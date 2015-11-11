@@ -2,6 +2,7 @@
 {% block title %}Equairizer Upload{% endblock %}
 {% block head %}
     {{ super() }}
+    <script src="/static/js/upload_song.js"></script>
 {% endblock %}
 {% block body %}
 
@@ -12,11 +13,11 @@
 
 
     <div class="container" id="body">
-    <form name="upload" ACTION="/upload_song" METHOD="POST" enctype=multipart/form-data>
+    <form name="upload" onsubmit="return validateForm()" ACTION="/upload_song" METHOD="POST" enctype=multipart/form-data>
 
     <input style="width:50%" id="uploadFile" placeholder="Choose File" disabled="disabled"/>
     <div class="fileUpload btn btn-primary">
-        <span>Upload</span>
+        <span>Select File</span>
         <input id="uploadBtn" type="file" name="file" class="upload"/>
         <script>
             document.getElementById("uploadBtn").onchange = function () {
@@ -38,6 +39,10 @@
 -->
         <br>
         <button type="submit" class="btn btn-primary">Upload Song</button>
+        <div class="fade in alert alert-warning" style="margin-top: 15px; display: none" id="message-alert">
+    <a href="#" onclick="document.getElementById('message-alert').style.display = 'none';" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+    <div id="message"></div>
+ </div>
     </form>
 
     </div>
