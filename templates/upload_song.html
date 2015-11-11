@@ -1,42 +1,24 @@
-{% extends "layout.html" %}
-{% block title %}Equairizer Upload{% endblock %}
-{% block head %}
-    {{ super() }}
-    <script src="/static/js/upload_song.js"></script>
-{% endblock %}
-{% block body %}
+<br>
 
-    <link href="/static/css/uploader.css" rel="stylesheet">
-
-
-    <br>
-
-
+    <div class="page-header">
+        <h1 class="text-center">Upload Song</h1>
+    </div>
     <div class="container" id="body">
     <form name="upload" onsubmit="return validateForm()" ACTION="/upload_song" METHOD="POST" enctype=multipart/form-data>
-
+    <input type="text" id="songName" name="songName" placeholder="Song Name">
+    <input type="text" id="artist" name="artist" placeholder="Artist">
+    <br>
     <input style="width:50%" id="uploadFile" placeholder="Choose File" disabled="disabled"/>
     <div class="fileUpload btn btn-primary">
         <span>Select File</span>
         <input id="uploadBtn" type="file" name="file" class="upload"/>
+        <br>
         <script>
             document.getElementById("uploadBtn").onchange = function () {
                 document.getElementById("uploadFile").value = this.value.replace("C:\\fakepath\\", "");
             };
         </script>
     </div>
-
-        <label for="file_select">Select File: </label>
-<!--
-        <div class="file-field input-field">
-            <div class="btn">
-                <span>File</span>
-                <input type="file" name="file"/>
-            </div>
-        </div>
-        <br>
-        <label for="file_select">Select Song: </label>
--->
         <br>
         <button type="submit" class="btn btn-primary">Upload Song</button>
         <div class="fade in alert alert-warning" style="margin-top: 15px; display: none" id="message-alert">
@@ -46,5 +28,3 @@
     </form>
 
     </div>
-
-{% endblock %}

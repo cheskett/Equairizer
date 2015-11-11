@@ -31,7 +31,11 @@ def teardown_request(exception):
 
 
 @app.route('/')
-def hello_world():
+def root():
+    return render_template('layout.html')
+
+@app.route('/home')
+def home():
     return render_template('home.html')
 
 
