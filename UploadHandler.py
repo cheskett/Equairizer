@@ -1,6 +1,6 @@
 from flask import Flask, app
 
-ALLOWED_EXTENSIONS = ['aac', 'ogg', 'wav', 'mp3']
+ALLOWED_EXTENSIONS = ['aac', 'ogg', 'wav', 'mp3', 'm4a']
 
 
 class UploadHandler:
