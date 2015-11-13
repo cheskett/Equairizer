@@ -127,11 +127,11 @@ def resume_playing():
     return "RESUMED"
 
 
-@app.route('/play/<song>')
+@app.route('/play/<song>/')
 def play_test_song(song=None):
     global stop_event
     global player
-    filename = os.path.join(UPLOAD_FOLDER, song)
+    filename = os.path.join(UPLOAD_FOLDER, '{}.wav'.format(song))
     player = AudioParser(filename)
     player.begin()
     import time

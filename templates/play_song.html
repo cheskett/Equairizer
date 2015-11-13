@@ -5,7 +5,7 @@ $.getJSON( "/list_songs", function( data ) {
   console.log(data)
   $.each( data, function( key, val ) {
 
-    items.push( "<li id='" + val['id'] + "'><a href='/play/"+val['id']+"/'>" + val['name'] + " - "+val['artist']+"</a></li>" );
+    items.push( "<li id='" + val['id'] + "'><a href='#' onclick='play("+val['id']+")'>" + val['name'] + " - "+val['artist']+"</a></li>" );
   });
  
   $( "<ul/>", {
@@ -13,6 +13,16 @@ $.getJSON( "/list_songs", function( data ) {
     html: items.join( "" )
   }).appendTo( "#body" );
 });
+
+function play(id) {
+	console.log(id)
+	$.ajax('/play/'+id).done(function (data) {
+		// Song is playing, cool beans
+		
+
+	});
+}
+
 </script>
 <div class="page-header">
         <h1 class="text-center">Upload Song</h1>
