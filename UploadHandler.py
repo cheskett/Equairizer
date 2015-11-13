@@ -18,7 +18,7 @@ class UploadHandler:
         wavfile = filename.split(".")[0] + ".wav"
         print filename
         print wavfile
-        call(["ffmpeg", "-y", "-i", filename, "-ac", "1", wavfile])
+        call(["ffmpeg", "-y", "-i", filename, "-ar", "44100", "-ac", "1", wavfile])
         os.remove(filename)
 
     @staticmethod
