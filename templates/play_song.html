@@ -2,8 +2,10 @@
 <script>
 $.getJSON( "/list_songs", function( data ) {
   var items = [];
+  console.log(data)
   $.each( data, function( key, val ) {
-    items.push( "<li id='" + key + "'>" + val + "</li>" );
+
+    items.push( "<li id='" + val['id'] + "'><a href='/play/"+val['id']+"/'>" + val['name'] + " - "+val['artist']+"</a></li>" );
   });
  
   $( "<ul/>", {
