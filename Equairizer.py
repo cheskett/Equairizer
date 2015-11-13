@@ -1,8 +1,5 @@
-<<<<<<< HEAD
+
 from flask import Flask, render_template, g, request, redirect, url_for, flash, app, Response
-=======
-from flask import Flask, render_template, g, request, redirect, url_for, flash
->>>>>>> 1fd548d66672a6a9e09cdb44054c0f698d038235
 from UploadHandler import UploadHandler
 from PlayHandler import PlayHandler
 import json
@@ -72,7 +69,7 @@ def load_upload_page():
     return render_template('upload_song.html')
 
 
-<<<<<<< HEAD
+
 @app.route('/play_song')
 def show_play_song_page():
 	return render_template('play_song.html')
@@ -80,7 +77,7 @@ def show_play_song_page():
 @app.route('/list_songs')
 def list_songs():
 	return Response(json.dumps(ph.get_song_listing()),  mimetype='application/json')
-=======
+
 @app.route("/test_stop")
 def stop_playing():
     global player
