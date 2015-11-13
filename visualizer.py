@@ -152,5 +152,6 @@ class AudioParser:
     def resume(self):
         self.stop_event.set()
 
-# player = AudioParser(filename)
-# player.begin()
+#filename = sys.argv[1]
+#player = AudioParser(filename)
+#player.begin()

@@ -1,9 +1,10 @@
-
 from flask import Flask, render_template, g, request, redirect, url_for, flash, app, Response
 from UploadHandler import UploadHandler
 from PlayHandler import PlayHandler
 import json
+import eyed3
 import sqlite3
+from werkzeug import secure_filename
 import threading
 from visualizer import AudioParser
 import os
@@ -56,9 +57,43 @@ def uploaded_file(filename):
 
 @app.route('/upload_song', methods=['POST'])
 def upload_song():
+    song_name = request.form['songName']
+    artist = request.form['artist']
     media_file = request.files['file']
+    filename = secure_filename(media_file.filename)
+    media_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+    if(song_name is None or song_name == ""):
+    	if(filename.split('.')[len(filename.split('.'))-1].lower() == 'mp3'):
+    		# It's an MP3, so grab the name and artist from that!
+            audiofile = eyed3.load(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+            print audiofile.tag.title
+            print audiofile.tag.artist
+            
+            song_name = audiofile.tag.title
+            artist = audiofile.tag.artist
+    	else: #No data? Reject
+            flash("Unsupported File Format")
+            return render_template('upload_song.html')
+
     if media_file and uh.allowed_file(media_file.filename):
-        return uh.upload_file(media_file)
+        cur = g.db.cursor()
+        selectQuery = 'SELECT id FROM songs WHERE name=?'
+        
+        cur.execute(selectQuery,['song_name'])
+        print 'Name: {}'.format(song_name)
+        row = cur.fetchone()
+        if(row is None): #The row didn't exist, so insert it
+        	insertQuery = 'INSERT INTO songs (name,artist) VALUES (?,?)'
+        	cur.execute(insertQuery,[song_name,artist])
+        	g.db.commit()
+        	id = cur.lastrowid
+        else: #Song name exists already, overwrite it
+            id = row[0]
+            print "Song Existed: {}".format(id)
+        cur.close()
+
+        return uh.upload_file(filename,id)
     else:
         flash("Unsupported File Format")
         return redirect(url_for('load_upload_page'))
@@ -92,11 +127,11 @@ def resume_playing():
     return "RESUMED"
 
 
-@app.route('/test_play')
-def play_test_song():
+@app.route('/play/<song>')
+def play_test_song(song=None):
     global stop_event
     global player
-    filename = os.path.join(UPLOAD_FOLDER, 'Grizzly_Bear_-_Adelma.wav')
+    filename = os.path.join(UPLOAD_FOLDER, song)
     player = AudioParser(filename)
     player.begin()
     import time

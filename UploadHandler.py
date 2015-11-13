@@ -13,19 +13,18 @@ class UploadHandler:
                filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
     @staticmethod
-    def convert_file(filename):
+    def convert_file(filename,id):
         filename = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        wavfile = filename.split(".")[0] + ".wav"
+        wavfile = os.path.join(app.config['UPLOAD_FOLDER'],"{}.wav".format(id))
         print filename
         print wavfile
         call(["ffmpeg", "-y", "-i", filename, "-ar", "44100", "-ac", "1", wavfile])
         os.remove(filename)
 
     @staticmethod
-    def upload_file(media_file):
-        filename = secure_filename(media_file.filename)
-        media_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        UploadHandler.convert_file(filename)
+    def upload_file(filename,id):
+        
+        UploadHandler.convert_file(filename,id)
         return redirect(url_for('uploaded_file',
                                 filename=filename))
 
