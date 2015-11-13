@@ -78,9 +78,9 @@ def upload_song():
 
     if media_file and uh.allowed_file(media_file.filename):
         cur = g.db.cursor()
-        selectQuery = 'SELECT id FROM songs WHERE name=?'
+        selectQuery = 'SELECT id FROM songs WHERE name="{}"'.format(song_name)
         
-        cur.execute(selectQuery,['song_name'])
+        cur.execute(selectQuery)
         print 'Name: {}'.format(song_name)
         row = cur.fetchone()
         if(row is None): #The row didn't exist, so insert it
