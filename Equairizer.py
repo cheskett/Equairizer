@@ -1,5 +1,7 @@
-from flask import Flask, render_template, g, request, redirect, url_for, flash, app
+from flask import Flask, render_template, g, request, redirect, url_for, flash, app, Response
 from UploadHandler import UploadHandler
+from PlayHandler import PlayHandler
+import json
 import sqlite3
 import os
 
@@ -11,7 +13,7 @@ UPLOAD_FOLDER = os.path.join(PROJECT_ROOT, 'songs')
 app.config["DATABASE"] = DATABASE
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 uh = UploadHandler()
-
+ph = PlayHandler()
 
 def connect_db():
     return sqlite3.connect(app.config["DATABASE"])
@@ -56,6 +58,15 @@ def upload_song():
 @app.route('/upload_page')
 def load_upload_page():
     return render_template('upload_song.html')
+
+
+@app.route('/play_song')
+def show_play_song_page():
+	return render_template('play_song.html')
+
+@app.route('/list_songs')
+def list_songs():
+	return Response(json.dumps(ph.get_song_listing()),  mimetype='application/json')
 
 
 if __name__ == '__main__':
