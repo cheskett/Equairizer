@@ -1,10 +1,11 @@
-from flask import Flask, render_template, g, request, redirect, url_for
+from flask import Flask, render_template, g, request, redirect, url_for, flash
 from UploadHandler import UploadHandler
 from werkzeug import secure_filename
 import sqlite3
 import os
 
 app = Flask(__name__)
+app.secret_key = 'this is the secret key'
 PROJECT_ROOT = os.path.dirname(os.path.realpath(__file__))
 DATABASE = os.path.join(PROJECT_ROOT, 'equairizer.db')
 UPLOAD_FOLDER = os.path.join(PROJECT_ROOT, 'songs')
@@ -47,6 +48,9 @@ def upload_song():
         media_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
         return redirect(url_for('uploaded_file',
                                 filename=filename))
+    else:
+        flash("Unsupported File Format")
+        return redirect(url_for('load_upload_page'))
 
 
 @app.route('/upload_page')
