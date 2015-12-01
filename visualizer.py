@@ -6,18 +6,18 @@ import pyaudio
 import threading
 import numpy as np
 from math import sqrt
-#from Adafruit_PWM_Servo_Driver import PWM
+from Adafruit_PWM_Servo_Driver import PWM
 
 filename = sys.argv[1]
 chunk = 500
 lock = threading.Lock()
 num_bands = 9
-#pwm = PWM(0x40)
+pwm = PWM(0x40)
 p = pyaudio.PyAudio()
 
 
 class AudioParser:
-    
+
     def __init__(self, filename, num_bands=None):
         self.filename = filename
         self.wave_file = wave.open(filename, 'rb')
@@ -25,7 +25,7 @@ class AudioParser:
         self.sample_rate = self.wave_file.getframerate()
         self.sample_width = self.wave_file.getsampwidth()
         self.duration = self.data_size / float(self.sample_rate)
-        
+
         if num_bands is None:
             self.num_bands = 9
         else:
@@ -38,12 +38,12 @@ class AudioParser:
                              output=True)
 
         #Calculate FFT informatuon
-        self.fouriers_per_second = 44.1 # Frames per second
+        self.fouriers_per_second = 44.1/2 # Frames per second
         self.fourier_spread = 1.0/self.fouriers_per_second
         self.fourier_width = self.fourier_spread
         self.fourier_width_index = self.fourier_width * float(self.sample_rate)
         self.sample_size = self.fourier_width_index
-    
+
         if len(sys.argv) < 3:
             self.length_to_process = int(self.duration)-1
         else:
@@ -92,7 +92,7 @@ class AudioParser:
         old_max = 2000
         old_min = 0
         new_max = 4095
-        new_min = 0
+        new_min = 1000
         new_val = (float((old_val - old_min)) / float((old_max - old_min))) * (new_max- new_min) + new_min
         print new_val
         return int(new_val)
@@ -102,7 +102,7 @@ class AudioParser:
         fft_data *= ((2**.5)/self.sample_size)
         self.fft_averages = self.average_fft_bands(fft_data)
         output = ""
-        #pwm.setPWM(0,0,scale_values(fft_averages[4]))
+        pwm.setPWM(0,0,self.scale_values(self.fft_averages[3]))
         for num in self.fft_averages:
             output = output + " " + str(int(num))
         lock.release()
