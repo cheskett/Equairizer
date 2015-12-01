@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% block title %}MyLink Upload Page{% endblock %}
+{% block title %}Equairizer Upload{% endblock %}
 {% block head %}
     {{ super() }}
 {% endblock %}
@@ -8,7 +8,7 @@
 
 
 <div class="container" id="body">
-     <form name="upload" ACTION="/upload_song" METHOD="POST" enctype=multipart/form-data>
+     <form name="upload" ACTION="/upload_song" onsubmit="return validateForm()" METHOD="POST" enctype=multipart/form-data>
             <input type="hidden" name="action" value="upload-pic-data">
 
             <label for="album_select">Select File: </label>
@@ -25,6 +25,10 @@
             <br>
             <button type="submit" class="btn btn-primary">Upload Song</button>
         </form>
+        <div class="fade in alert alert-warning" style="margin-top: 15px; display: none" id="message-alert">
+        <a href="#" onclick="document.getElementById('message-alert').style.display = 'none';" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+        <div id="message"></div>
+        </div>
 </div>
 
 {% endblock %}
