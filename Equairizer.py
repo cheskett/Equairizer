@@ -1,6 +1,8 @@
-from flask import Flask, render_template, g, request, redirect, url_for, flash, app
+from flask import Flask, render_template, g, request, redirect, url_for, flash
 from UploadHandler import UploadHandler
 import sqlite3
+import threading
+from visualizer import AudioParser
 import os
 
 app = Flask(__name__)
@@ -11,6 +13,8 @@ UPLOAD_FOLDER = os.path.join(PROJECT_ROOT, 'songs')
 app.config["DATABASE"] = DATABASE
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 uh = UploadHandler()
+player = AudioParser()
+stop_event = threading.Event()
 
 
 def connect_db():
@@ -32,6 +36,7 @@ def teardown_request(exception):
 @app.route('/')
 def root():
     return render_template('layout.html')
+
 
 @app.route('/home')
 def home():
@@ -56,6 +61,35 @@ def upload_song():
 @app.route('/upload_page')
 def load_upload_page():
     return render_template('upload_song.html')
+
+
+@app.route("/test_stop")
+def stop_playing():
+    global player
+    player.pause()
+    return "PAUSED"
+
+
+@app.route("/test_resume")
+def resume_playing():
+    global player
+    player.resume()
+    return "RESUMED"
+
+
+@app.route('/test_play')
+def play_test_song():
+    global stop_event
+    global player
+    filename = os.path.join(UPLOAD_FOLDER, 'Grizzly_Bear_-_Adelma.wav')
+    player = AudioParser(filename)
+    player.begin()
+    import time
+    # time.sleep(2)
+    # e.set()
+    # time.sleep(2)
+    # e.clear()
+    return "End"
 
 
 if __name__ == '__main__':
