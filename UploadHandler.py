@@ -1,6 +1,8 @@
 from flask import Flask, current_app as app, redirect, url_for
 from werkzeug import secure_filename
 from subprocess import call
+from visualizer import AudioProcessor
+import threading
 import os
 
 ALLOWED_EXTENSIONS = ['aac', 'ogg', 'wav', 'mp3', 'm4a']
@@ -13,18 +15,24 @@ class UploadHandler:
                filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
     @staticmethod
-    def convert_file(filename,id):
+    def convert_file(filename, id):
         filename = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        wavfile = os.path.join(app.config['UPLOAD_FOLDER'],"{}.wav".format(id))
+        wavfile = os.path.join(app.config['UPLOAD_FOLDER'], "{}.wav".format(id))
         print filename
         print wavfile
-        call(["ffmpeg", "-y", "-i", filename, "-ar", "44100", "-ac", "1", wavfile])
-        os.remove(filename)
+        worker = threading.Thread(target=UploadHandler.work, args=(filename, wavfile,))
+        worker.start()
 
     @staticmethod
-    def upload_file(filename,id):
-        
-        UploadHandler.convert_file(filename,id)
+    def work(filename, wavfile):
+        call(["ffmpeg", "-y", "-i", filename, "-ar", "44100", "-ac", "1", wavfile])
+        os.remove(filename)
+        ap = AudioProcessor(wavfile)
+        ap.process_file()
+
+    @staticmethod
+    def upload_file(filename, id):
+        UploadHandler.convert_file(filename, id)
         return redirect(url_for('uploaded_file',
                                 filename=filename))
 

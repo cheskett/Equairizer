@@ -62,38 +62,38 @@ def upload_song():
     media_file = request.files['file']
     filename = secure_filename(media_file.filename)
     media_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-    if(song_name is None or song_name == ""):
-    	if(filename.split('.')[len(filename.split('.'))-1].lower() == 'mp3'):
-    		# It's an MP3, so grab the name and artist from that!
+    if (song_name is None or song_name == ""):
+        if (filename.split('.')[len(filename.split('.')) - 1].lower() == 'mp3'):
+            # It's an MP3, so grab the name and artist from that!
             audiofile = eyed3.load(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
             print audiofile.tag.title
             print audiofile.tag.artist
-            
+
             song_name = audiofile.tag.title
             artist = audiofile.tag.artist
-    	else: #No data? Reject
+        else:  # No data? Reject
             flash("Unsupported File Format")
             return render_template('upload_song.html')
 
     if media_file and uh.allowed_file(media_file.filename):
         cur = g.db.cursor()
         selectQuery = 'SELECT id FROM songs WHERE name="{}"'.format(song_name)
-        
+
         cur.execute(selectQuery)
         print 'Name: {}'.format(song_name)
         row = cur.fetchone()
-        if(row is None): #The row didn't exist, so insert it
-        	insertQuery = 'INSERT INTO songs (name,artist) VALUES (?,?)'
-        	cur.execute(insertQuery,[song_name,artist])
-        	g.db.commit()
-        	id = cur.lastrowid
-        else: #Song name exists already, overwrite it
+        if (row is None):  # The row didn't exist, so insert it
+            insertQuery = 'INSERT INTO songs (name,artist) VALUES (?,?)'
+            cur.execute(insertQuery, [song_name, artist])
+            g.db.commit()
+            id = cur.lastrowid
+        else:  # Song name exists already, overwrite it
             id = row[0]
             print "Song Existed: {}".format(id)
         cur.close()
 
-        return uh.upload_file(filename,id)
+        return uh.upload_file(filename, id)
     else:
         flash("Unsupported File Format")
         return redirect(url_for('load_upload_page'))
@@ -104,14 +104,15 @@ def load_upload_page():
     return render_template('upload_song.html')
 
 
-
 @app.route('/play_song')
 def show_play_song_page():
-	return render_template('play_song.html')
+    return render_template('play_song.html')
+
 
 @app.route('/list_songs')
 def list_songs():
-	return Response(json.dumps(ph.get_song_listing()),  mimetype='application/json')
+    return Response(json.dumps(ph.get_song_listing()), mimetype='application/json')
+
 
 @app.route("/test_stop")
 def stop_playing():
@@ -143,4 +144,4 @@ def play_test_song(song=None):
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='127.0.0.1', port=5000, debug=True)

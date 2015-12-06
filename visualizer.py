@@ -2,6 +2,7 @@
 import wave
 import struct
 import sys
+from os import path
 import pyaudio
 import threading
 import numpy as np
@@ -11,8 +12,6 @@ from math import sqrt
 
 chunk = 500
 lock = threading.Lock()
-num_bands = 9
-# pwm = PWM(0x40)
 p = pyaudio.PyAudio()
 
 
@@ -27,6 +26,77 @@ class AudioParser:
         self.sample_width = self.wave_file.getsampwidth()
         self.duration = self.data_size / float(self.sample_rate)
         self.stop_event = threading.Event()
+        self.fouriers_per_second = 44.1 / 2  # Frames per second
+        self.fourier_spread = 1.0 / self.fouriers_per_second
+        self.fourier_width = self.fourier_spread
+        self.fourier_width_index = self.fourier_width * float(self.sample_rate)
+        self.sample_size = self.fourier_width_index
+
+        self.in_file = open(path.join(path.dirname(path.dirname(path.abspath(filename))), "songdata",
+                                      path.basename(filename).split('.')[0] + '.txt'), 'r')
+
+        if num_bands is None:
+            self.num_bands = 9
+        else:
+            self.num_bands = num_bands
+        self.stream = p.open(format=
+                             p.get_format_from_width(self.wave_file.getsampwidth()),
+                             channels=self.wave_file.getnchannels(),
+                             rate=self.wave_file.getframerate(),
+                             output=True)
+
+    def play_audio(self):
+        data = self.wave_file.readframes(chunk)
+        current_sample = ''
+
+        while data != '':
+            if self.stop_event.isSet():
+                self.stream.write(data)
+                current_sample = current_sample + data
+                if len(current_sample) == self.sample_size * 2:
+                    current_sample = current_sample + data
+                    input_data = []
+                    read_data = self.in_file.readline().strip('\n')
+                    for num in read_data.split():
+                        input_data.append(num)
+                    output = ""
+                    for num in input_data:
+                        output = output + " " + str(int(num))
+                    print output
+                    current_sample = ''
+            data = self.wave_file.readframes(chunk)
+        else:
+            self.stop_event.wait()
+
+        self.wave_file.close()
+
+    def begin(self):
+        self.stop_event.set()
+        play_thread = threading.Thread(target=self.play_audio, args=())
+        # play_thread.daemon = True
+        play_thread.start()
+
+    def pause(self):
+        self.stop_event.clear()
+
+    def resume(self):
+        self.stop_event.set()
+
+
+class AudioProcessor:
+    def __init__(self, filename=None, num_bands=None):
+        if filename is None:
+            return
+        self.filename = filename
+        self.wave_file = wave.open(filename, 'rb')
+        self.data_size = self.wave_file.getnframes()
+        self.sample_rate = self.wave_file.getframerate()
+        self.sample_width = self.wave_file.getsampwidth()
+        self.duration = self.data_size / float(self.sample_rate)
+        self.stop_event = threading.Event()
+
+        self.out_file = open(path.join(path.dirname(path.dirname(path.abspath(filename))), "songdata",
+                                       path.basename(filename).split('.')[0] + '.txt'), 'w')
 
         if num_bands is None:
             self.num_bands = 9
@@ -87,71 +157,33 @@ class AudioParser:
             self.fft_averages.append(avg)
         return self.fft_averages
 
-    def scale_values(self, old_val):
-        if old_val > 2000:
-            old_val = 2000
-        old_val = int(old_val)
-        old_max = 2000
-        old_min = 0
-        new_max = 4095
-        new_min = 1000
-        new_val = (float((old_val - old_min)) / float((old_max - old_min))) * (new_max - new_min) + new_min
-        print new_val
-        return int(new_val)
-
-    def process_sample(self, sample_range):
+    def _process_sample(self, sample_range):
         fft_data = abs(np.fft.fft(sample_range))
         fft_data *= ((2 ** .5) / self.sample_size)
         self.fft_averages = self.average_fft_bands(fft_data)
         output = ""
-        # pwm.setPWM(0, 0, self.scale_values(self.fft_averages[3]))
         for num in self.fft_averages:
             output = output + " " + str(int(num))
-        lock.release()
+        self.out_file.write(output + '\n')
         print output
 
-    def play_audio(self):
+    def process_file(self):
+
         data = self.wave_file.readframes(chunk)
+
         current_sample = ''
 
         while data != '':
-            if self.stop_event.isSet():
-                self.stream.write(data)
-                current_sample = current_sample + data
-                if len(current_sample) == self.sample_size * 2:
-                    pack_fmt = '%dh' % (len(current_sample) / 2)
-                    sound_data = struct.unpack(pack_fmt, current_sample)
-                    lock.acquire()
-                    work_thread = threading.Thread(target=self.process_sample, args=(sound_data,))
-                    work_thread.start()
-                    current_sample = ''
-                data = self.wave_file.readframes(chunk)
-            else:
-                self.stop_event.wait()
+            current_sample = current_sample + data
+            if len(current_sample) == self.sample_size * 2:
+                pack_fmt = '%dh' % (len(current_sample) / 2)
+                sound_data = struct.unpack(pack_fmt, current_sample)
+                self._process_sample(sound_data)
+                current_sample = ''
+            data = self.wave_file.readframes(chunk)
         self.wave_file.close()
+        self.out_file.close()
 
-    def begin(self):
-        print "Sample rate: %s" % self.sample_rate
-        print "Data Size: %s" % self.data_size
-        print "Sample width: %s" % self.sample_width
-        print "Duration: %s" % self.duration
-        print "For Fourier width of " + str(self.fourier_width) + " need " + str(self.sample_size) + " samples each FFT"
-        print "Doing " + str(self.fouriers_per_second) + " Fouriers per second"
-        print "Total " + str(self.total_transforms * self.fourier_spread)
-        print "Spacing: " + str(self.fourier_spacing)
-        print "Total transforms " + str(self.total_transforms)
-
-        self.stop_event.set()
-        play_thread = threading.Thread(target=self.play_audio, args=())
-        play_thread.daemon = True
-        play_thread.start()
-
-    def pause(self):
-        self.stop_event.clear()
-
-    def resume(self):
-        self.stop_event.set()
-
-#filename = sys.argv[1]
-#player = AudioParser(filename)
-#player.begin()
+# filename = sys.argv[1]
+# player = AudioParser(filename)
+# player.begin()
