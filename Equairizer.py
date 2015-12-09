@@ -20,7 +20,7 @@ uh = UploadHandler()
 
 ph = PlayHandler()
 
-player = AudioParser()
+player = None
 stop_event = threading.Event()
 
 
@@ -114,14 +114,14 @@ def list_songs():
     return Response(json.dumps(ph.get_song_listing()), mimetype='application/json')
 
 
-@app.route("/test_stop")
+@app.route("/pause")
 def stop_playing():
     global player
     player.pause()
     return "PAUSED"
 
 
-@app.route("/test_resume")
+@app.route("/resume")
 def resume_playing():
     global player
     player.resume()
@@ -132,6 +132,8 @@ def resume_playing():
 def play_test_song(song=None):
     global stop_event
     global player
+    if(player is not None):
+        player.pause()
     filename = os.path.join(UPLOAD_FOLDER, '{}.wav'.format(song))
     player = AudioParser(filename)
     player.begin()
@@ -144,4 +146,4 @@ def play_test_song(song=None):
 
 
 if __name__ == '__main__':
-    app.run(host='127.0.0.1', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)

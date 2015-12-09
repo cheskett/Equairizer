@@ -7,14 +7,13 @@ import pyaudio
 import threading
 import numpy as np
 from math import sqrt
+from matrixinterface import MatrixInterface
 
 # from Adafruit_PWM_Servo_Driver import PWM
 
 chunk = 500
 lock = threading.Lock()
 p = pyaudio.PyAudio()
-
-
 class AudioParser:
     def __init__(self, filename=None, num_bands=None):
         if filename is None:
@@ -57,16 +56,17 @@ class AudioParser:
                     current_sample = current_sample + data
                     input_data = []
                     read_data = self.in_file.readline().strip('\n')
-                    for num in read_data.split():
-                        input_data.append(num)
+                    input_data = read_data.split()
                     output = ""
-                    for num in input_data:
-                        output = output + " " + str(int(num))
-                    print output
+                    """for ind, num in enumerate(input_data):
+                        norm_val = MatrixInterface.NormalizeFFTValue(int(num))
+                        channel = ind
+                        output+= "{}: {} | ".format(channel,norm_val)
+                    print output"""
                     current_sample = ''
-            data = self.wave_file.readframes(chunk)
-        else:
-            self.stop_event.wait()
+                data = self.wave_file.readframes(chunk)
+            else:
+                self.stop_event.wait()
 
         self.wave_file.close()
 

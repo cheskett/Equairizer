@@ -15,17 +15,46 @@ $.getJSON( "/list_songs", function( data ) {
 });
 
 function play(id) {
+ 
 	console.log(id)
 	$.ajax('/play/'+id).done(function (data) {
 		// Song is playing, cool beans
-		
-
+		 var playbackDiv = document.getElementById("playback");
+    playbackDiv.style.display = "block";
+    playButton.innerHTML = "Pause";
+    paused = false;
 	});
-}
 
+
+}
+  paused = false;
+  console.log("Loading?")
+    console.log("Loaded");
+    var playButton = document.getElementById("play-pause");
+    playButton.addEventListener("click", function() {
+      if (paused == true) {
+        console.log('Playing?');
+        $.ajax('/resume').done(function (data) {
+        console.log('Playing!')
+        playButton.innerHTML = "Pause";
+        paused = false;
+      });
+      } else {
+        console.log("Pausing?");
+        $.ajax('/pause').done(function (data) {
+        console.log("Paused");
+        playButton.innerHTML = "Play";
+        paused = true;
+      });
+
+      }
+    });
 </script>
 <div class="page-header">
-        <h1 class="text-center">Upload Song</h1>
+        <h1 class="text-center">Play from Library</h1>
+    </div>
+    <div class="container" id="playback" style="display:none">
+      <button type="button" id="play-pause">Pause</button>
     </div>
     <div class="container" id="body">
 
