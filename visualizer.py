@@ -8,8 +8,10 @@ import threading
 import numpy as np
 from math import sqrt
 from matrixinterface import MatrixInterface
-
+import serial
 # from Adafruit_PWM_Servo_Driver import PWM
+
+PRE_NORM = False
 
 chunk = 500
 lock = threading.Lock()
@@ -18,6 +20,7 @@ class AudioParser:
     def __init__(self, filename=None, num_bands=None):
         if filename is None:
             return
+        self.ser = serial.Serial('/dev/ttyACM0', 9600)
         self.filename = filename
         self.wave_file = wave.open(filename, 'rb')
         self.data_size = self.wave_file.getnframes()
@@ -58,11 +61,16 @@ class AudioParser:
                     read_data = self.in_file.readline().strip('\n')
                     input_data = read_data.split()
                     output = ""
-                    """for ind, num in enumerate(input_data):
-                        norm_val = MatrixInterface.NormalizeFFTValue(int(num))
+                    for ind, num in enumerate(input_data):
+                        norm_val = num
+                        if(not PRE_NORM):
+                            norm_val = int(MatrixInterface.NormalizeFFTValue(int(num)))
                         channel = ind
-                        output+= "{}: {} | ".format(channel,norm_val)
-                    print output"""
+                        data = MatrixInterface.CombineChannelAndHeight(ind,int(norm_val))
+                        self.ser.write(chr(int(data)))
+                        output+= "{}: {} | ".format(channel, int(norm_val))
+                    print output
+
                     current_sample = ''
                 data = self.wave_file.readframes(chunk)
             else:
@@ -163,7 +171,10 @@ class AudioProcessor:
         self.fft_averages = self.average_fft_bands(fft_data)
         output = ""
         for num in self.fft_averages:
-            output = output + " " + str(int(num))
+            val = num
+            if(PRE_NORM):
+                val = MatrixInterface.NormalizeFFTValue(int(num))
+            output = output + " " + str(int(val))
         self.out_file.write(output + '\n')
         print output
 
